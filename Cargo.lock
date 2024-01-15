@@ -183,7 +183,9 @@ dependencies = [
  "blockfrost",
  "chrono",
  "dotenv",
+ "reqwest",
  "rusqlite",
+ "serde_json",
  "tokio",
 ]
 

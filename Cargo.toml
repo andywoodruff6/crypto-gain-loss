@@ -9,5 +9,7 @@ edition = "2021"
 blockfrost = "1.0.1"
 chrono = "0.4.31"
 dotenv = "0.15.0"
+reqwest = "0.11.23"
 rusqlite = "0.30.0"
+serde_json = "1.0.111"
 tokio = { version = "1.35.1", features = ["full"] }
