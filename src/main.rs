@@ -1,30 +1,43 @@
-use blockfrost::{BlockfrostAPI, BlockfrostResult};
+// use blockfrost::{BlockfrostAPI, BlockfrostResult, Pagination};
+use chrono::prelude::*;
+use color_eyre::Result;
 use dotenv::dotenv;
+use std::thread;
+use std::time::Duration;
 
+pub mod database_calls;
 pub mod file;
-use crate::file::read_address_file;
-
+pub mod gecko;
 
 #[tokio::main]
-async fn main() -> BlockfrostResult<()> {
+async fn main() -> Result<()> {
     dotenv().ok();
+    color_eyre::install()?;
 
-    let api_key: String =
-        std::env::var("BLOCKFROST_API_KEY").expect("Blockfrost API key not found");
-    let api: BlockfrostAPI = build_api(&api_key)?;
+    //----------//
+    // Build and update price table
+    database_calls::create_cardano_price_table()?;
 
-    let health = api.health().await;
-    print!("Health: {:#?}", health);
-
-    let contents = read_address_file();
-
-    // print!("Addresses: {}", contents);
+    let mut last_date = database_calls::check_last_price_date()?;
+    let now: i64 = Local::now().timestamp();
 
 
+    while last_date <= now {
+        println!("Date: {:#?}", &last_date);
+
+        let json_response = gecko::get_cardano_history(last_date).await?;
+
+        if json_response.get("status").is_some() {
+            println!("API limit reached, sleeping for 20 seconds");
+            thread::sleep(Duration::from_secs(20));
+        } else {
+            // return price as f64s
+            let price = json_response["market_data"]["current_price"]["usd"].as_f64().unwrap();
+
+            database_calls::add_price_to_table(price, last_date)?;
+            last_date += 86400; // add 1 day in seconds
+        }
+    }
+    //----------//
     Ok(())
-}
-
-fn build_api(api_key: &str) -> BlockfrostResult<BlockfrostAPI> {
-    let api = BlockfrostAPI::new(api_key, Default::default());
-    Ok(api)
 }
