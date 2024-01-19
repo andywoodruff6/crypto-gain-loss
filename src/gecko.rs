@@ -20,5 +20,5 @@ pub async fn get_cardano_history(date: i64) -> Result<Value, reqwest::Error> {
     let json = response.json::<serde_json::Value>().await?;
     // print!("JSON: {:#?}", &json);
 
-    return Ok(json); 
+    Ok(json)
 }

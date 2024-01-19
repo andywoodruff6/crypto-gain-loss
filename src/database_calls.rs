@@ -15,6 +15,26 @@ pub fn create_cardano_price_table() -> Result<()> {
     Ok(())
 }
 
+pub fn create_rewards_table() -> Result<()> {
+    let conn = Connection::open("sqlite:cryptogains.db")?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS rewards (
+            id INTEGER PRIMARY KEY,
+            stake_address TEXT NOT NULL,
+            epoch INT NOT NULL,
+            amount REAL NOT NULL,
+            pool_id STRING NOT NULL
+        )",
+        params![],
+    )?;
+
+    Ok(())
+}
+
+
+
+
 pub fn check_last_price_date() -> Result<i64> {
     let conn = Connection::open("sqlite:cryptogains.db")?;
 
